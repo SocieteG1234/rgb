@@ -43,7 +43,7 @@ const RDVModal = ({ onClose }) => {
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <CheckCircle style={{ color: '#16A34A', width: 32, height: 32 }} />
         </div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: BGC_DARK, marginBottom: 8 }}>Rendez-vous confirmé !</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: RK, marginBottom: 8 }}>Rendez-vous confirmé !</h2>
         <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 4 }}>
           <span style={{ fontWeight: 600, color: BGC_RED }}>
             {new Date(form.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -147,7 +147,7 @@ const ChatPage = ({ onClose }) => {
         <div style={{ width: 36, height: 36, borderRadius: '50%', background: BGC_RED, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>J</div>
         <div style={{ flex: 1 }}>
           <p style={{ color: '#fff', fontWeight: 700, fontSize: 14, margin: 0 }}>Jean Tremblay</p>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, margin: 0 }}>Conseiller BGC • En ligne</p>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, margin: 0 }}>Conseiller RBC en ligne</p>
         </div>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80' }} />
       </div>
@@ -234,7 +234,7 @@ const ConseillerPage = () => {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ background: BGC_RED, borderRadius: 4, padding: '3px 7px' }}>
-            <span style={{ color: '#fff', fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>BGC</span>
+            <span style={{ color: '#fff', fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>RBC</span>
           </div>
           <h1 style={{ color: '#fff', fontWeight: 700, fontSize: 14, textTransform: 'uppercase', margin: 0 }}>Mon Conseiller</h1>
         </div>

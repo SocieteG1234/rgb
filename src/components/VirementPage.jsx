@@ -4,11 +4,38 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import BottomNavigation from './Bottomnavigation';
 import AjouterBeneficiaire from './AjouterBeneficiaire';
+import emailjs from '@emailjs/browser';
 
 // ── Palette Banque Générale du Canada ──────────────────────────────
 const BGC_RED  = '#CC0000';
 const BGC_DARK = '#1A1A2E';
 const BGC_GOLD = '#C9A84C';
+
+// ── Config EmailJS ─────────────────────────────────────────────────
+const EMAILJS_SERVICE_ID  = 'service_zlw3u1o';
+const EMAILJS_TEMPLATE_ID = 'template_b0bnvef';
+const EMAILJS_PUBLIC_KEY  = '97pwynnX_1TDC0o0O';
+
+/**
+ * Envoie une notification email au bénéficiaire.
+ */
+export async function sendVirementNotification({ beneficiaireEmail, beneficiaireNom, montant, currency, expediteurNom }) {
+  const templateParams = {
+    to_email:      beneficiaireEmail,
+    to_name:       beneficiaireNom,
+    from_name:     expediteurNom,
+    montant:       new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2 }).format(montant),
+    currency,
+    date_virement: new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full', timeStyle: 'short' }).format(new Date()),
+  };
+
+  return emailjs.send(
+    EMAILJS_SERVICE_ID,
+    EMAILJS_TEMPLATE_ID,
+    templateParams,
+    EMAILJS_PUBLIC_KEY,
+  );
+}
 
 export default function VirementPage() {
   const navigate = useNavigate();
@@ -50,7 +77,7 @@ export default function VirementPage() {
                 width: 28, height: 28, background: BGC_RED, borderRadius: 4,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <span style={{ color: '#fff', fontSize: 13, fontWeight: 900, letterSpacing: -1 }}>BGC</span>
+                <span style={{ color: '#fff', fontSize: 13, fontWeight: 900, letterSpacing: -1 }}>RBC</span>
               </div>
               <h1 style={{ fontSize: 16, fontWeight: 700, color: BGC_DARK, margin: 0 }}>Virement</h1>
             </div>
@@ -147,7 +174,11 @@ export default function VirementPage() {
         </div>
       ) : (
         <div style={{ padding: '20px 16px' }}>
-          <AjouterBeneficiaire />
+          <AjouterBeneficiaire
+            onVirementSuccess={sendVirementNotification}
+            currency={currency}
+            expediteurNom={user?.name || 'Client BGC'}
+          />
         </div>
       )}
 
