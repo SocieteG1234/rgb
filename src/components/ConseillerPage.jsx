@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, Phone, Mail, MessageCircle, Calendar, Clock, X, Send, CheckCircle, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import BottomNavigation from './Bottomnavigation';
+import BottomNavigation from './BottomNavigation';
 
 const BGC_RED  = '#CC0000';
 const BGC_DARK = '#1A1A2E';

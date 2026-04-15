@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, Bell, BellOff, ChevronRight, TrendingUp, Shield, Gift, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import BottomNavigation from './Bottomnavigation';
+import BottomNavigation from './BottomNavigation';
 
 const BGC_RED  = '#CC0000';
 const BGC_DARK = '#1A1A2E';

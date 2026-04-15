@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, FileText, Download, Eye, Lock, Shield, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import BottomNavigation from './Bottomnavigation';
+import BottomNavigation from './BottomNavigation';
 
 const RBC_BLUE   = '#003168';
 const RBC_BLUE2  = '#1a6fc4';

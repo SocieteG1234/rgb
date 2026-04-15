@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Bell, X, User, CreditCard, FileText, HelpCircle, LogOut, Download, Shield, ChevronRight, Eye, EyeOff, FolderOpen, TrendingUp, ArrowUpRight, ArrowDownLeft, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import BottomNavigation from './Bottomnavigation';
-import BlockedAccountModal from './Blockedaccountmodal';
+import BottomNavigation from './BottomNavigation';
+import BlockedAccountModal from './BlockedAccountModal';
 
 const RBC_BLUE  = '#003168';
 const RBC_GOLD  = '#FEDF00';

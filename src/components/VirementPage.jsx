@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowLeft, Users, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import BottomNavigation from './Bottomnavigation';
+import BottomNavigation from './BottomNavigation';
 import AjouterBeneficiaire from './AjouterBeneficiaire';
 import emailjs from '@emailjs/browser';
 
