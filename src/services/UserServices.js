@@ -7,7 +7,7 @@ const DEV_MODE = true;
 
 const STORAGE_KEY   = 'lcl_users_data';
 const VERSION_KEY   = 'lcl_data_version';
-const DATA_VERSION  = 6; // ⚡ INCRÉMENTER CE NUMÉRO À CHAQUE MODIFICATION DES UTILISATEURS
+const DATA_VERSION  = 3; // ⚡ INCRÉMENTER CE NUMÉRO À CHAQUE MODIFICATION DES UTILISATEURS
 
 // ============================================
 // DEVISE
@@ -41,7 +41,7 @@ const BASE_USERS = [
     unlockFee: 32000.00,
     blockReason: 'Blocage temporaire pour régularisation successorale',
     rib: {
-      iban: 'FR76 3000 5000 0102 0123 4567 880',
+      iban: 'CA76 3000 5000 0102 0123 4567 880',
       bankCode: '30004',
       branchCode: '00001',
       accountNumber: '00123456789',

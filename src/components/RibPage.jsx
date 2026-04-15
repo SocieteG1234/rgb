@@ -231,9 +231,9 @@ export default function RIBPage() {
           {/* Logo BGC */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ background: BGC_RED, borderRadius: 4, padding: '4px 8px' }}>
-              <span style={{ color: '#fff', fontWeight: 900, fontSize: 14, letterSpacing: 1 }}>BGC</span>
+              <span style={{ color: '#fff', fontWeight: 900, fontSize: 14, letterSpacing: 1 }}>RBC</span>
             </div>
-            <span style={{ fontWeight: 700, fontSize: 13, color: BGC_DARK }}>Banque Générale du Canada</span>
+            <span style={{ fontWeight: 700, fontSize: 13, color: BGC_DARK }}>Banque Royale du Canada</span>
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
@@ -256,7 +256,7 @@ export default function RIBPage() {
                 border: `2px solid ${BGC_GOLD}`,
                 background: 'rgba(255,255,255,0.08)',
               }}>
-                <div style={{ color: BGC_RED, fontWeight: 900, fontSize: 20, letterSpacing: 2 }}>BGC</div>
+                <div style={{ color: BGC_RED, fontWeight: 900, fontSize: 20, letterSpacing: 2 }}>RBC</div>
                 <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 7, marginTop: 2 }}>Banque Générale du Canada</div>
               </div>
               <div>

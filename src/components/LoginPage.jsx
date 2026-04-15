@@ -46,20 +46,8 @@ const LoginPage = ({ navigate }) => {
 
       {/* Header RBC */}
       <header style={{ background: RBC_BLUE, display: 'flex', alignItems: 'stretch', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 10 }}>
-          <img
-            src="/images/L1.jpeg"
-            alt="RBC"
-            style={{ height: 40, width: 'auto', objectFit: 'contain' }}
-            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-          />
-          <div style={{
-            display: 'none', width: 40, height: 40, background: RBC_GOLD,
-            borderRadius: '50%', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 900, fontSize: 13, color: RBC_BLUE,
-          }}>RBC</div>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>Banque Royale</span>
-        </div>
+        
+         
         <div style={{ background: RBC_GOLD, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 18px', gap: 3 }}>
           <Lock size={20} color={RBC_BLUE} />
           <span style={{ fontSize: 11, fontWeight: 700, color: RBC_BLUE, letterSpacing: 0.5 }}>CONNEXION</span>

@@ -80,7 +80,7 @@ const ActusPage = () => {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ background: BGC_RED, borderRadius: 4, padding: '3px 7px' }}>
-            <span style={{ color: '#fff', fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>BGC</span>
+            <span style={{ color: '#fff', fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>RBC</span>
           </div>
           <h1 style={{ color: '#fff', fontWeight: 700, fontSize: 14, textTransform: 'uppercase', margin: 0 }}>
             {tab === 'actus' ? 'Mes Actus' : 'Mes Alertes'}
@@ -133,7 +133,7 @@ const ActusPage = () => {
 
           <div style={{ textAlign: 'center', marginTop: 32, padding: '24px 16px', marginLeft: 16, marginRight: 16, borderRadius: 16, background: BGC_DARK, border: `1px solid ${BGC_GOLD}` }}>
             <p style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: 0 }}>Paramétrez</p>
-            <p style={{ fontSize: 20, fontWeight: 700, color: BGC_GOLD, margin: 0 }}>vos alertes BGC</p>
+            <p style={{ fontSize: 20, fontWeight: 700, color: BGC_GOLD, margin: 0 }}>vos alertes RBC</p>
           </div>
         </>
       ) : (
