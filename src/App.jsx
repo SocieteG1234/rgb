@@ -10,7 +10,7 @@ import HistoriquePage      from './components/HistoriquePage';
 import VirementPage        from './components/VirementPage';
 import AjouterBeneficiaire from './components/AjouterBeneficiaire';
 import CartePage           from './components/CartePage';
-import RIBPage             from './components/RIBPage';
+import RibPage             from './components/RibPage';
 import RecuPage            from './components/RecuPage';
 import ConseillerPage      from './components/ConseillerPage';
 import ActusPage           from './components/ActusPage';
@@ -94,7 +94,7 @@ function AppRoutes() {
       <Route path="/virement"             element={<PrivateRoute><VirementPageWrapper setVirementData={setVirementData} /></PrivateRoute>} />
       <Route path="/ajouter-beneficiaire" element={<PrivateRoute><AjouterBeneficiaire /></PrivateRoute>} />
       <Route path="/cartes"               element={<PrivateRoute><CartePage /></PrivateRoute>} />
-      <Route path="/rib"                  element={<PrivateRoute><RIBPage /></PrivateRoute>} />
+      <Route path="/rib"                  element={<PrivateRoute><RibPage /></PrivateRoute>} />
       <Route path="/recu"                 element={<PrivateRoute><RecuPageWrapper virementData={virementData} /></PrivateRoute>} />
       <Route path="/conseiller"           element={<PrivateRoute><ConseillerPage /></PrivateRoute>} />
       <Route path="/actus"                element={<PrivateRoute><ActusPage /></PrivateRoute>} />
