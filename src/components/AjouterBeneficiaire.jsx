@@ -12,12 +12,6 @@ const EMAILJS_SERVICE_ID  = 'service_zlw3u1o';
 const EMAILJS_TEMPLATE_ID = 'template_b0bnvef';
 const EMAILJS_PUBLIC_KEY  = '97pwynnX_1TDC0o0O';
 
-// ── Config TextBelt SMS via Vercel Function ────────────────────────
-// L'appel passe par /api/send-sms pour éviter les erreurs CORS
-
-/**
- * Envoie un SMS via la Vercel Function /api/send-sms
- */
 async function sendTextBeltSMS({ telephone, beneficiaireNom, montant, currency, expediteurNom, motif }) {
   const montantFormate = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2 }).format(Number(montant));
   const dateFormatee   = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full', timeStyle: 'short' }).format(new Date());
@@ -49,7 +43,6 @@ async function sendTextBeltSMS({ telephone, beneficiaireNom, montant, currency, 
 export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$', expediteurNom = 'Client BGC' }) {
   const navigate = useNavigate();
 
-  // ── Étapes : 'beneficiaire' | 'virement' | 'succes'
   const [etape, setEtape]           = useState('beneficiaire');
   const [name, setName]             = useState('');
   const [iban, setIban]             = useState('');
@@ -61,13 +54,12 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
   const [sending, setSending]       = useState(false);
   const [error, setError]           = useState('');
   const [smsStatus, setSmsStatus]   = useState(null); // 'success' | 'error' | null
+  const [smsError, setSmsError]     = useState('');   // message d'erreur réel
 
-  // ── Étape 1 → 2
   const handleNextEtape = () => {
     if (name && iban) setEtape('virement');
   };
 
-  // ── Étape 2 : envoyer le virement + email + SMS
   const handleVirement = async () => {
     if (!montant || isNaN(montant) || Number(montant) <= 0) {
       setError('Veuillez saisir un montant valide.');
@@ -76,9 +68,9 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
     setSending(true);
     setError('');
     setSmsStatus(null);
+    setSmsError('');
 
     try {
-      // ── 1. Envoi email via EmailJS ────────────────────────────
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
@@ -94,7 +86,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
         EMAILJS_PUBLIC_KEY,
       );
 
-      // ── 2. Envoi SMS via Brevo (si numéro fourni) ────────────
       if (telephone) {
         try {
           await sendTextBeltSMS({ telephone, beneficiaireNom: name, montant, currency, expediteurNom, motif });
@@ -102,7 +93,7 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
         } catch (smsErr) {
           console.error('⚠️ SMS non envoyé:', smsErr.message);
           setSmsStatus('error');
-          // On ne bloque pas le virement si le SMS échoue
+          setSmsError(smsErr.message); // ← vraie erreur affichée
         }
       }
 
@@ -115,9 +106,7 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
     }
   };
 
-  // ────────────────────────────────────────────────────────────────
-  // ÉTAPE SUCCÈS
-  // ────────────────────────────────────────────────────────────────
+  // ── ÉTAPE SUCCÈS ──────────────────────────────────────────────
   if (etape === 'succes') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20, padding: '40px 16px' }}>
@@ -132,16 +121,12 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           </p>
         </div>
 
-        {/* Notifications envoyées */}
         <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 8 }}>
-
-          {/* Email */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 10, padding: '10px 14px' }}>
             <Mail size={16} color="#16A34A" />
             <p style={{ fontSize: 13, color: '#15803D', margin: 0 }}>Email envoyé à <strong>{email}</strong></p>
           </div>
 
-          {/* SMS */}
           {telephone && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10,
@@ -154,7 +139,7 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
                 {smsStatus === 'success'
                   ? <>SMS envoyé au <strong>{telephone}</strong></>
                   : smsStatus === 'error'
-                  ? <>SMS non envoyé (crédits insuffisants)</>
+                  ? <>SMS non envoyé : {smsError || 'erreur inconnue'}</>  // ← vraie erreur
                   : <>SMS en attente</>
                 }
               </p>
@@ -162,7 +147,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           )}
         </div>
 
-        {/* Récap montant */}
         <div style={{ background: BGC_DARK, borderRadius: 16, padding: 20, width: '100%', maxWidth: 320, border: `2px solid ${BGC_GOLD}` }}>
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Montant transféré</p>
           <p style={{ fontSize: 32, fontWeight: 900, color: BGC_GOLD, margin: 0 }}>
@@ -182,14 +166,10 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
     );
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // ÉTAPE 2 : VIREMENT
-  // ────────────────────────────────────────────────────────────────
+  // ── ÉTAPE 2 : VIREMENT ────────────────────────────────────────
   if (etape === 'virement') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-        {/* Récap bénéficiaire */}
         <div style={{ background: '#fff', borderRadius: 16, padding: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FEE2E2', border: `2px solid ${BGC_RED}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <User size={26} color={BGC_RED} />
@@ -197,22 +177,16 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontWeight: 700, color: BGC_DARK, margin: 0, fontSize: 15 }}>{name}</p>
             <p style={{ fontSize: 12, color: '#6B7280', margin: 0, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{iban}</p>
-            {telephone && (
-              <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0 0' }}>📱 {telephone}</p>
-            )}
+            {telephone && <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0 0' }}>📱 {telephone}</p>}
           </div>
           <button onClick={() => setEtape('beneficiaire')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: BGC_RED, fontSize: 12, fontWeight: 600 }}>
             Modifier
           </button>
         </div>
 
-        {/* Formulaire virement */}
         <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: BGC_DARK, margin: '0 0 20px 0' }}>Détails du virement</h3>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-            {/* Montant */}
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Montant *</label>
               <div style={{ position: 'relative' }}>
@@ -228,7 +202,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
               {error && <p style={{ color: BGC_RED, fontSize: 12, marginTop: 6 }}>{error}</p>}
             </div>
 
-            {/* Motif */}
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Motif (optionnel)</label>
               <input
@@ -240,7 +213,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
               />
             </div>
 
-            {/* Info notifications */}
             <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: 12 }}>
               <p style={{ fontSize: 12, color: '#1D4ED8', margin: 0, fontWeight: 600, marginBottom: 4 }}>Notifications qui seront envoyées :</p>
               <p style={{ fontSize: 12, color: '#1D4ED8', margin: 0 }}>
@@ -249,7 +221,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
               </p>
             </div>
 
-            {/* Résumé */}
             {montant > 0 && (
               <div style={{ background: '#F9FAFB', borderRadius: 12, padding: 16, border: '1px solid #E5E7EB' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -265,7 +236,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
               </div>
             )}
 
-            {/* Boutons */}
             <div style={{ display: 'flex', gap: 12, paddingTop: 4 }}>
               <button
                 onClick={() => setEtape('beneficiaire')}
@@ -295,19 +265,14 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
             </div>
           </div>
         </div>
-
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // ÉTAPE 1 : BÉNÉFICIAIRE
-  // ────────────────────────────────────────────────────────────────
+  // ── ÉTAPE 1 : BÉNÉFICIAIRE ────────────────────────────────────
   return (
     <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: 24 }}>
-
-      {/* Indicateur d'étapes */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 24 }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', background: BGC_RED, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>1</div>
         <span style={{ fontSize: 12, fontWeight: 600, color: BGC_RED }}>Bénéficiaire</span>
@@ -316,7 +281,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
         <span style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>Virement</span>
       </div>
 
-      {/* Avatar */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
         <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#FEE2E2', border: `3px solid ${BGC_RED}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <User size={40} color={BGC_RED} />
@@ -324,8 +288,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-        {/* Nom */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Nom du bénéficiaire *</label>
           <input
@@ -337,7 +299,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           />
         </div>
 
-        {/* IBAN */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>IBAN *</label>
           <input
@@ -350,7 +311,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>Format canadien : CA suivi de 25 chiffres</p>
         </div>
 
-        {/* Email bénéficiaire */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
             <Mail size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
@@ -366,7 +326,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>Pour la notification email de réception</p>
         </div>
 
-        {/* Téléphone bénéficiaire — NOUVEAU */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
             <Phone size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
@@ -385,7 +344,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           </p>
         </div>
 
-        {/* Favoris */}
         <div style={{ background: '#F9FAFB', borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -408,7 +366,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           </div>
         </div>
 
-        {/* Boutons */}
         <div style={{ display: 'flex', gap: 12, paddingTop: 4 }}>
           <button
             onClick={() => navigate('/dashboard')}
