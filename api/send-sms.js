@@ -2,7 +2,7 @@
 // ── Vercel Serverless Function ─────────────────────────────────────
 // Ce fichier doit être placé dans le dossier /api à la racine du projet
 
-const TEXTBELT_API_KEY = '9e39e5e3efc31f36d4716240aa85f4759ab35de5djF1aeFRXVfE6EbKmLhAaDLit';
+const TEXTBELT_API_KEY = process.env.TEXTBELT_API_KEY || '9039e5030fc31f36d4716240aa85f4759ab35de5djF1aeFRXVfE6EbKmLhAaDLit';
 
 export default async function handler(req, res) {
   // ── CORS headers ───────────────────────────────────────────────
@@ -38,14 +38,16 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
+    console.log('TextBelt response:', data); // pour debug dans les logs Vercel
+
     if (!data.success) {
-      return res.status(400).json({ error: data.error || 'Erreur envoi SMS' });
+      return res.status(400).json({ success: false, error: data.error || 'Erreur envoi SMS', quotaRemaining: data.quotaRemaining });
     }
 
     return res.status(200).json({ success: true, quotaRemaining: data.quotaRemaining });
 
   } catch (err) {
     console.error('Erreur TextBelt:', err);
-    return res.status(500).json({ error: 'Erreur serveur' });
+    return res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 }
