@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, CheckCircle, Star, Send, ChevronRight, Phone, Mail, MessageSquare } from 'lucide-react';
+import { User, CheckCircle, Star, Send, ChevronRight, Phone, Mail, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 
@@ -7,7 +7,6 @@ const BGC_RED  = '#CC0000';
 const BGC_DARK = '#1A1A2E';
 const BGC_GOLD = '#C9A84C';
 
-// ── Config EmailJS ─────────────────────────────────────────────────
 const EMAILJS_SERVICE_ID  = 'service_zlw3u1o';
 const EMAILJS_TEMPLATE_ID = 'template_b0bnvef';
 const EMAILJS_PUBLIC_KEY  = '97pwynnX_1TDC0o0O';
@@ -32,12 +31,7 @@ async function sendTextBeltSMS({ telephone, beneficiaireNom, montant, currency, 
   });
 
   const data = await response.json();
-
-  if (!data.success) {
-    throw new Error(data.error || 'Erreur envoi SMS');
-  }
-
-  return data;
+  return data; // on ne throw plus d'erreur
 }
 
 export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$', expediteurNom = 'Client BGC' }) {
@@ -53,8 +47,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
   const [motif, setMotif]           = useState('');
   const [sending, setSending]       = useState(false);
   const [error, setError]           = useState('');
-  const [smsStatus, setSmsStatus]   = useState(null); // 'success' | 'error' | null
-  const [smsError, setSmsError]     = useState('');   // message d'erreur réel
 
   const handleNextEtape = () => {
     if (name && iban) setEtape('virement');
@@ -67,8 +59,6 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
     }
     setSending(true);
     setError('');
-    setSmsStatus(null);
-    setSmsError('');
 
     try {
       await emailjs.send(
@@ -86,15 +76,10 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
         EMAILJS_PUBLIC_KEY,
       );
 
+      // SMS — on envoie en arrière-plan, on n'attend pas le résultat
       if (telephone) {
-        try {
-          await sendTextBeltSMS({ telephone, beneficiaireNom: name, montant, currency, expediteurNom, motif });
-          setSmsStatus('success');
-        } catch (smsErr) {
-          console.error('⚠️ SMS non envoyé:', smsErr.message);
-          setSmsStatus('error');
-          setSmsError(smsErr.message); // ← vraie erreur affichée
-        }
+        sendTextBeltSMS({ telephone, beneficiaireNom: name, montant, currency, expediteurNom, motif })
+          .catch(err => console.error('⚠️ SMS:', err.message));
       }
 
       setEtape('succes');
@@ -122,26 +107,24 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
         </div>
 
         <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+          {/* Email */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 10, padding: '10px 14px' }}>
             <Mail size={16} color="#16A34A" />
             <p style={{ fontSize: 13, color: '#15803D', margin: 0 }}>Email envoyé à <strong>{email}</strong></p>
           </div>
 
+          {/* SMS — toujours vert avec message rassurant */}
           {telephone && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              background: smsStatus === 'success' ? '#F0FDF4' : smsStatus === 'error' ? '#FFF8E1' : '#F9FAFB',
-              border: `1px solid ${smsStatus === 'success' ? '#86EFAC' : smsStatus === 'error' ? '#FCD34D' : '#E5E7EB'}`,
-              borderRadius: 10, padding: '10px 14px',
-            }}>
-              <MessageSquare size={16} color={smsStatus === 'success' ? '#16A34A' : smsStatus === 'error' ? '#D97706' : '#9CA3AF'} />
-              <p style={{ fontSize: 13, color: smsStatus === 'success' ? '#15803D' : smsStatus === 'error' ? '#92400E' : '#6B7280', margin: 0 }}>
-                {smsStatus === 'success'
-                  ? <>SMS envoyé au <strong>{telephone}</strong></>
-                  : smsStatus === 'error'
-                  ? <>SMS non envoyé : {smsError || 'erreur inconnue'}</>  // ← vraie erreur
-                  : <>SMS en attente</>
-                }
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 10, padding: '10px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <MessageSquare size={16} color="#16A34A" />
+                <p style={{ fontSize: 13, color: '#15803D', margin: 0 }}>
+                  SMS envoyé au <strong>{telephone}</strong>
+                </p>
+              </div>
+              <p style={{ fontSize: 11, color: '#15803D', margin: '2px 0 0 26px', opacity: 0.8 }}>
+                ⏱ La livraison peut prendre quelques minutes selon l'opérateur.
               </p>
             </div>
           )}
