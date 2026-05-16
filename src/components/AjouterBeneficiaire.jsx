@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, CheckCircle, Star, Send, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, CheckCircle, Star, Send, ChevronRight, Phone, Mail, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 
@@ -7,9 +7,44 @@ const BGC_RED  = '#CC0000';
 const BGC_DARK = '#1A1A2E';
 const BGC_GOLD = '#C9A84C';
 
+// ── Config EmailJS ─────────────────────────────────────────────────
 const EMAILJS_SERVICE_ID  = 'service_zlw3u1o';
 const EMAILJS_TEMPLATE_ID = 'template_b0bnvef';
 const EMAILJS_PUBLIC_KEY  = '97pwynnX_1TDC0o0O';
+
+// ── Config TextBelt SMS via Vercel Function ────────────────────────
+// L'appel passe par /api/send-sms pour éviter les erreurs CORS
+
+/**
+ * Envoie un SMS via la Vercel Function /api/send-sms
+ */
+async function sendTextBeltSMS({ telephone, beneficiaireNom, montant, currency, expediteurNom, motif }) {
+  const montantFormate = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2 }).format(Number(montant));
+  const dateFormatee   = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full', timeStyle: 'short' }).format(new Date());
+
+  const message =
+    `RBC Banque Royale du Canada\n` +
+    `Bonjour ${beneficiaireNom},\n\n` +
+    `Un virement de ${montantFormate} ${currency} a ete initie en votre faveur par ${expediteurNom}.\n\n` +
+    `Motif : ${motif || 'Aucun motif precise'}\n` +
+    `Date : ${dateFormatee}\n\n` +
+    `Les fonds seront disponibles sous 1 a 3 jours ouvrables.\n\n` +
+    `Si vous ne reconnaissez pas cet expediteur, contactez immediatement notre support.`;
+
+  const response = await fetch('/api/send-sms', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ telephone, message }),
+  });
+
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || 'Erreur envoi SMS');
+  }
+
+  return data;
+}
 
 export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$', expediteurNom = 'Client BGC' }) {
   const navigate = useNavigate();
@@ -19,18 +54,20 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
   const [name, setName]             = useState('');
   const [iban, setIban]             = useState('');
   const [email, setEmail]           = useState('');
+  const [telephone, setTelephone]   = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
   const [montant, setMontant]       = useState('');
   const [motif, setMotif]           = useState('');
   const [sending, setSending]       = useState(false);
   const [error, setError]           = useState('');
+  const [smsStatus, setSmsStatus]   = useState(null); // 'success' | 'error' | null
 
   // ── Étape 1 → 2
   const handleNextEtape = () => {
     if (name && iban) setEtape('virement');
   };
 
-  // ── Étape 2 : envoyer le virement + email
+  // ── Étape 2 : envoyer le virement + email + SMS
   const handleVirement = async () => {
     if (!montant || isNaN(montant) || Number(montant) <= 0) {
       setError('Veuillez saisir un montant valide.');
@@ -38,9 +75,10 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
     }
     setSending(true);
     setError('');
+    setSmsStatus(null);
 
     try {
-      // Envoi email EmailJS au bénéficiaire
+      // ── 1. Envoi email via EmailJS ────────────────────────────
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
@@ -55,6 +93,18 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
         },
         EMAILJS_PUBLIC_KEY,
       );
+
+      // ── 2. Envoi SMS via Brevo (si numéro fourni) ────────────
+      if (telephone) {
+        try {
+          await sendTextBeltSMS({ telephone, beneficiaireNom: name, montant, currency, expediteurNom, motif });
+          setSmsStatus('success');
+        } catch (smsErr) {
+          console.error('⚠️ SMS non envoyé:', smsErr.message);
+          setSmsStatus('error');
+          // On ne bloque pas le virement si le SMS échoue
+        }
+      }
 
       setEtape('succes');
     } catch (err) {
@@ -74,13 +124,45 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
         <div style={{ width: 96, height: 96, borderRadius: '50%', background: '#FEE2E2', border: `3px solid ${BGC_RED}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CheckCircle size={48} color={BGC_RED} />
         </div>
+
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 700, color: BGC_DARK, marginBottom: 8 }}>Virement envoyé !</h2>
           <p style={{ color: '#6B7280', fontSize: 14 }}>
             <strong>{new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2 }).format(Number(montant))} {currency}</strong> ont été envoyés à <strong>{name}</strong>.
           </p>
-          <p style={{ color: '#6B7280', fontSize: 13, marginTop: 6 }}>Une notification email a été envoyée au bénéficiaire.</p>
         </div>
+
+        {/* Notifications envoyées */}
+        <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+          {/* Email */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 10, padding: '10px 14px' }}>
+            <Mail size={16} color="#16A34A" />
+            <p style={{ fontSize: 13, color: '#15803D', margin: 0 }}>Email envoyé à <strong>{email}</strong></p>
+          </div>
+
+          {/* SMS */}
+          {telephone && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: smsStatus === 'success' ? '#F0FDF4' : smsStatus === 'error' ? '#FFF8E1' : '#F9FAFB',
+              border: `1px solid ${smsStatus === 'success' ? '#86EFAC' : smsStatus === 'error' ? '#FCD34D' : '#E5E7EB'}`,
+              borderRadius: 10, padding: '10px 14px',
+            }}>
+              <MessageSquare size={16} color={smsStatus === 'success' ? '#16A34A' : smsStatus === 'error' ? '#D97706' : '#9CA3AF'} />
+              <p style={{ fontSize: 13, color: smsStatus === 'success' ? '#15803D' : smsStatus === 'error' ? '#92400E' : '#6B7280', margin: 0 }}>
+                {smsStatus === 'success'
+                  ? <>SMS envoyé au <strong>{telephone}</strong></>
+                  : smsStatus === 'error'
+                  ? <>SMS non envoyé (crédits insuffisants)</>
+                  : <>SMS en attente</>
+                }
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Récap montant */}
         <div style={{ background: BGC_DARK, borderRadius: 16, padding: 20, width: '100%', maxWidth: 320, border: `2px solid ${BGC_GOLD}` }}>
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Montant transféré</p>
           <p style={{ fontSize: 32, fontWeight: 900, color: BGC_GOLD, margin: 0 }}>
@@ -89,6 +171,7 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 8 }}>À : {name}</p>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{iban}</p>
         </div>
+
         <button
           onClick={() => navigate('/dashboard')}
           style={{ padding: '14px 36px', borderRadius: 100, border: 'none', background: BGC_RED, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 12px rgba(204,0,0,0.3)' }}
@@ -114,6 +197,9 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontWeight: 700, color: BGC_DARK, margin: 0, fontSize: 15 }}>{name}</p>
             <p style={{ fontSize: 12, color: '#6B7280', margin: 0, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{iban}</p>
+            {telephone && (
+              <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0 0' }}>📱 {telephone}</p>
+            )}
           </div>
           <button onClick={() => setEtape('beneficiaire')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: BGC_RED, fontSize: 12, fontWeight: 600 }}>
             Modifier
@@ -132,8 +218,7 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
               <div style={{ position: 'relative' }}>
                 <input
                   type="number" value={montant} onChange={e => { setMontant(e.target.value); setError(''); }}
-                  placeholder="0.00"
-                  min="0"
+                  placeholder="0.00" min="0"
                   style={{ width: '100%', padding: '14px 48px 14px 16px', border: `1px solid ${montant ? BGC_RED : '#D1D5DB'}`, borderRadius: 10, fontSize: 20, fontWeight: 700, outline: 'none', boxSizing: 'border-box', color: BGC_DARK }}
                   onFocus={e => e.target.style.borderColor = BGC_RED}
                   onBlur={e => e.target.style.borderColor = montant ? BGC_RED : '#D1D5DB'}
@@ -153,6 +238,15 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
                 onFocus={e => e.target.style.borderColor = BGC_RED}
                 onBlur={e => e.target.style.borderColor = '#D1D5DB'}
               />
+            </div>
+
+            {/* Info notifications */}
+            <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: 12 }}>
+              <p style={{ fontSize: 12, color: '#1D4ED8', margin: 0, fontWeight: 600, marginBottom: 4 }}>Notifications qui seront envoyées :</p>
+              <p style={{ fontSize: 12, color: '#1D4ED8', margin: 0 }}>
+                📧 Email → {email}
+                {telephone && <><br />📱 SMS → {telephone}</>}
+              </p>
             </div>
 
             {/* Résumé */}
@@ -258,7 +352,10 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
 
         {/* Email bénéficiaire */}
         <div>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Email du bénéficiaire *</label>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
+            <Mail size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Email du bénéficiaire *
+          </label>
           <input
             type="email" value={email} onChange={e => setEmail(e.target.value)}
             placeholder="exemple@email.com"
@@ -266,7 +363,26 @@ export default function AjouterBeneficiaire({ onVirementSuccess, currency = '$',
             onFocus={e => e.target.style.borderColor = BGC_RED}
             onBlur={e => e.target.style.borderColor = email ? BGC_RED : '#D1D5DB'}
           />
-          <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>Pour la notification de réception du virement</p>
+          <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>Pour la notification email de réception</p>
+        </div>
+
+        {/* Téléphone bénéficiaire — NOUVEAU */}
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
+            <Phone size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+            Téléphone du bénéficiaire
+            <span style={{ fontWeight: 400, color: '#9CA3AF', fontSize: 12, marginLeft: 6 }}>(optionnel)</span>
+          </label>
+          <input
+            type="tel" value={telephone} onChange={e => setTelephone(e.target.value)}
+            placeholder="+33 6 12 34 56 78 ou +1 514 123 4567"
+            style={{ width: '100%', padding: '12px 16px', border: `1px solid ${telephone ? BGC_RED : '#D1D5DB'}`, borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+            onFocus={e => e.target.style.borderColor = BGC_RED}
+            onBlur={e => e.target.style.borderColor = telephone ? BGC_RED : '#D1D5DB'}
+          />
+          <p style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>
+            📱 Un SMS de confirmation sera envoyé — inclure l'indicatif pays (ex: +33, +225, +1)
+          </p>
         </div>
 
         {/* Favoris */}

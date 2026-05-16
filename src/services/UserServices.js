@@ -7,7 +7,7 @@ const DEV_MODE = true;
 
 const STORAGE_KEY   = 'lcl_users_data';
 const VERSION_KEY   = 'lcl_data_version';
-const DATA_VERSION  = 3; // ⚡ INCRÉMENTER CE NUMÉRO À CHAQUE MODIFICATION DES UTILISATEURS
+const DATA_VERSION  = 4; // ⚡ INCRÉMENTÉ pour forcer le reset avec le nouvel utilisateur
 
 // ============================================
 // DEVISE
@@ -65,8 +65,8 @@ const BASE_USERS = [
     ],
     accounts: [
       { id: 1, type: 'Compte Courant', number: 'N°*******2284', balance: 4866047.00, icon: 'wallet',    currency: 'CAD' },
-      { id: 2, type: 'Livret A',       number: 'N°*******5462', balance: 30000.40,  icon: 'piggybank', currency: 'CAD' },
-      { id: 3, type: 'Plan Épargne',   number: 'N°*******8891', balance: 50000.17,  icon: 'trending',  currency: 'CAD' },
+      { id: 2, type: 'Livret A',       number: 'N°*******5462', balance: 30000.40,   icon: 'piggybank', currency: 'CAD' },
+      { id: 3, type: 'Plan Épargne',   number: 'N°*******8891', balance: 50000.17,   icon: 'trending',  currency: 'CAD' },
     ],
     transactions: [
       { id: 1,  type: 'Virement entrant', date: '14 Déc 2017', reference: 'IE28 *** 513',      amount: 40000.00, isCredit: true  },
@@ -93,6 +93,79 @@ const BASE_USERS = [
     chequier: 5,
     virementRapide: 10,
     virementProgramme: 3,
+  },
+
+  // ── Utilisateur 2 ────────────────────────────────────────────
+  {
+    id: 2,
+    username: '07895513411',
+    password: '123456',
+    name: 'GAILLARD DOMINIQUE',
+    email: 'gaillard.dominique@gmail.com',
+    phone: '+1 418 555 0123',
+    accountNumber: '20250000002',
+    country: 'Canada',
+    city: 'Québec',
+    location: 'Québec, Canada',
+    manager: 'Charles Fortunato',
+    balance: 3550000.00,
+    currency: 'CAD',
+    isBlocked: false,
+    unlockFee: 0,
+    blockReason: null,
+    rib: {
+      iban: 'CA76 3000 4000 0200 0987 6543 210',
+      bankCode: '30004',
+      branchCode: '00002',
+      accountNumber: '00987654321',
+      key: '76',
+    },
+    cards: [
+      {
+        id: 1,
+        type: 'Visa Premier',
+        cardNumber: '4532 0002 4521 1236',
+        maskedNumber: '4532 **** **** 1236',
+        cvv: '456',
+        expiryDate: '09/28',
+        status: 'active',
+        dailyWithdrawalLimit: 1000,
+        weeklyPaymentLimit: 5000,
+        internationalPaymentEnabled: true,
+        issueDate: '09/2023',
+        cardHolder: 'GAILLARD DOMINIQUE',
+      },
+    ],
+    accounts: [
+      { id: 1, type: 'Compte Courant', number: 'N°*******3391', balance: 3550000.00, icon: 'wallet',    currency: 'CAD' },
+      { id: 2, type: 'Livret A',       number: 'N°*******7712', balance: 45000.00,   icon: 'piggybank', currency: 'CAD' },
+      { id: 3, type: 'Plan Épargne',   number: 'N°*******5530', balance: 120000.00,  icon: 'trending',  currency: 'CAD' },
+    ],
+    transactions: [
+      { id: 1,  type: 'Virement entrant', date: '10 Mai 2026', reference: 'CA76 *** 891',      amount: 500000.00, isCredit: true  },
+      { id: 2,  type: 'Achat carte',      date: '09 Mai 2026', reference: 'IGA QUÉBEC',        amount: 124.30,    isCredit: false },
+      { id: 3,  type: 'Virement sortant', date: '08 Mai 2026', reference: 'CA76 *** 445',      amount: 2500.00,   isCredit: false },
+      { id: 4,  type: 'Virement entrant', date: '07 Mai 2026', reference: 'CA76 *** 123',      amount: 10000.00,  isCredit: true  },
+      { id: 5,  type: 'Achat carte',      date: '06 Mai 2026', reference: 'METRO QUÉBEC',      amount: 87.65,     isCredit: false },
+      { id: 6,  type: 'Retrait ATM',      date: '05 Mai 2026', reference: 'ATM RBC QUÉBEC',    amount: 300.00,    isCredit: false },
+      { id: 7,  type: 'Virement entrant', date: '03 Mai 2026', reference: 'CA76 *** 778',      amount: 1500.00,   isCredit: true  },
+      { id: 8,  type: 'Achat carte',      date: '02 Mai 2026', reference: 'CANADIAN TIRE',     amount: 245.99,    isCredit: false },
+      { id: 9,  type: 'Retrait ATM',      date: '01 Mai 2026', reference: 'ATM RBC VIEUX QC',  amount: 200.00,    isCredit: false },
+      { id: 10, type: 'Achat carte',      date: '30 Avr 2026', reference: 'AMAZON CANADA',     amount: 89.99,     isCredit: false },
+    ],
+    expenses: {
+      month: 'Mai 2026',
+      categories: [
+        { name: 'Logement',     value: 40, color: '#3B82F6' },
+        { name: 'Alimentation', value: 20, color: '#10B981' },
+        { name: 'Transport',    value: 15, color: '#F97316' },
+        { name: 'Loisirs',      value: 15, color: '#6366F1' },
+        { name: 'Autres',       value: 10, color: '#D1D5DB' },
+      ],
+    },
+    chequier: 3,
+    virementRapide: 8,
+    virementProgramme: 2,
   },
 
 ];
